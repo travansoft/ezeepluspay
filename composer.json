@@ -1,0 +1,13 @@
+{
+  "name": "travansoft/ezeepluspay",
+  "description": "EzeePlusPay PSP Aggregator PHP SDK",
+  "type": "library",
+  "autoload": {
+    "psr-4": {
+      "Travansoft\\EzeePlusPay\\": "src/"
+    }
+  },
+  "require": {
+    "php": ">=7.0"
+  }
+}
