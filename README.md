@@ -36,11 +36,11 @@ composer require ezeepluspay/sdk
 <?php
 require 'vendor/autoload.php';
 
-use EzeePlusPay\Client;
+use Travansoft\EzeePlusPay\Client;
 
 $client = new Client([
-    'merchant_id' => 'YOUR_MERCHANT_ID',
-    'api_key'     => 'YOUR_SECRET_KEY',
+    'api_key' => 'YOUR_MERCHANT_ID',
+    'secret'     => 'YOUR_SECRET_KEY',
     'base_url'    => 'https://secure.ezeepluspay.in/api/'
 ]);
 ```
@@ -78,29 +78,29 @@ exit;
 
 ------------------------------------------------------------------------
 
-# 🔄 Handling Redirect Response
+# 🔄 Handling Redirect Response Auto mode (recommended):
 
 ``` php
-<?php
-require 'vendor/autoload.php';
+ 
+$result = $client->processPaymentCallback();
 
-use EzeePlusPay\Client;
-
-$client = new Client([
-    'merchant_id' => 'YOUR_MERCHANT_ID',
-    'api_key'     => 'YOUR_SECRET_KEY',
-]);
-
-$data = $_GET;
-
-if (!$client->verifySignature($data)) {
-    die("Invalid signature");
+if (!$result->isValid()) {
+    http_response_code(400);
+    exit("Callback Error: " . $result->getError());
 }
 
-if ($data['status'] === 'SUCCESS') {
-    echo "Payment Successful for Order: " . $data['order_id'];
+$data = $result->getData();
+
+```
+# 🔄 Handling Redirect Response Manual mode (if merchant wants control):
+``` php
+
+$result = $client->handleCallback($signedPayload, $signature);
+
+if ($result->isValid()) {
+    $data = $result->getData();
 } else {
-    echo "Payment Failed!";
+    echo $result->getError();
 }
 ```
 
