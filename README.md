@@ -2,9 +2,9 @@
 
 ### Lightweight, Framework-Independent PHP Library (PHP 7 Compatible)
 
-A simple PHP SDK to integrate **EzeePlusPay Payment Gateway** into **any
+A simple PHP SDK to integrate **EzeePlusPay PSP Aggregator Gateway** into **any
 PHP 7+ project**.\
-No Laravel dependency. Works with plain PHP + Composer.
+Works with plain PHP + Composer.
 
 ------------------------------------------------------------------------
 
@@ -13,7 +13,7 @@ No Laravel dependency. Works with plain PHP + Composer.
 ### Install via Composer
 
 ``` bash
-composer require ezeepluspay/sdk
+composer require travansoft/ezeepluspay
 ```
 
 ------------------------------------------------------------------------
@@ -41,7 +41,7 @@ use Travansoft\EzeePlusPay\Client;
 $client = new Client([
     'api_key' => 'YOUR_MERCHANT_ID',
     'secret'     => 'YOUR_SECRET_KEY',
-    'base_url'    => 'https://secure.ezeepluspay.in/api/'
+    'base_url'    => 'https://secure.ezeepluspay.in/'
 ]);
 ```
 
@@ -50,21 +50,20 @@ $client = new Client([
 # 💰 Create a Payment Request
 
 ``` php
-$orderId = "ORD" . time();
+$merchantTransactionId$ = "ORD" . time();
 
-$payment = $client->createPayment([
-    'order_id'   => $orderId,
-    'amount'     => 49900,
-    'currency'   => 'INR',
-    'customer'   => [
-        'name'   => 'John Doe',
+$response = $client->createPayment([
+    'merchant_tid'   => $merchantTransactionId,
+    'amount'     => 49900,    
+    'callback_url' => "https://yourdomain.com/payment/redirect.php",
+    'metadata'   => [
+        'customer'   => 'John Doe',
         'mobile' => '9876543210',
         'email'  => 'john@example.com'
-    ],
-    'redirect_url' => "https://yourdomain.com/payment/redirect.php"
+    ]
 ]);
 
-echo "Redirect user to: " . $payment['payment_url'];
+echo "Redirect user to: " . $response['payment_url'];
 ```
 
 ------------------------------------------------------------------------
@@ -72,7 +71,7 @@ echo "Redirect user to: " . $payment['payment_url'];
 # 🌐 Redirect the User
 
 ``` php
-header("Location: " . $payment['payment_url']);
+header("Location: " . $response['payment_url']);
 exit;
 ```
 
