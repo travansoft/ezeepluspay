@@ -39,8 +39,8 @@ class Client
     public function createPayment(array $params): array
     {
         // merchant_tid required + non-empty string
-        if (empty($params['merchant_tid']) || !is_string($params['merchant_tid'])) {
-            throw new EzeeplusPayException("merchant_tid is required and must be a valid string.");
+        if (empty($params['merchant_tid'])) {
+            throw new EzeeplusPayException("merchant_tid is required and cannot be empty.");
         }
 
         // amount required + numeric + greater than 0
