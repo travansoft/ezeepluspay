@@ -2,7 +2,7 @@
 
 namespace Travansoft\EzeePlusPay;
 
-use Travansoft\EzeePlusPay\Exceptions\EzeePlusPayException;
+use Travansoft\EzeePlusPay\Exceptions\EzeeplusPayException;
 
 class Client
 {
@@ -40,22 +40,22 @@ class Client
     {
         // merchant_tid required + non-empty string
         if (empty($params['merchant_tid']) || !is_string($params['merchant_tid'])) {
-            throw new EzeePlusPayException("merchant_tid is required and must be a valid string.");
+            throw new EzeeplusPayException("merchant_tid is required and must be a valid string.");
         }
 
         // amount required + numeric + greater than 0
         if (!isset($params['amount']) || !is_numeric($params['amount']) || $params['amount'] <= 0) {
-            throw new EzeePlusPayException("amount is required and must be a number greater than 0.");
+            throw new EzeeplusPayException("amount is required and must be a number greater than 0.");
         }
 
         // callback_url required + valid URL
         if (empty($params['callback_url']) || !filter_var($params['callback_url'], FILTER_VALIDATE_URL)) {
-            throw new EzeePlusPayException("callback_url is required and must be a valid URL.");
+            throw new EzeeplusPayException("callback_url is required and must be a valid URL.");
         }
 
         // metadata optional → must be array
         if (isset($params['metadata']) && !is_array($params['metadata'])) {
-            throw new EzeePlusPayException("metadata must be an array.");
+            throw new EzeeplusPayException("metadata must be an array.");
         }
 
         // --- BUILD PAYLOAD ---
@@ -138,13 +138,13 @@ class Client
         $json = base64_decode($signedPayload, true);
 
         if ($json === false) {
-            throw new EzeePlusPayException('Invalid signed payload (Base64 decode failed).');
+            throw new EzeeplusPayException('Invalid signed payload (Base64 decode failed).');
         }
 
         $data = json_decode($json, true);
 
         if (!is_array($data)) {
-            throw new EzeePlusPayException('Invalid signed payload (JSON decode failed).');
+            throw new EzeeplusPayException('Invalid signed payload (JSON decode failed).');
         }
 
         return $data;
@@ -175,20 +175,20 @@ class Client
         if ($response === false) {
             $error = curl_error($ch);
             curl_close($ch);
-            throw new EzeePlusPayException("cURL error: {$error}");
+            throw new EzeeplusPayException("cURL error: {$error}");
         }
 
         $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
         if ($status >= 500) {
-            throw new EzeePlusPayException("EzeePlusPay server error: HTTP {$status}");
+            throw new EzeeplusPayException("EzeePlusPay server error: HTTP {$status}");
         }
 
         $decoded = json_decode($response, true);
 
         if ($decoded === null) {
-            throw new EzeePlusPayException("Invalid JSON response.");
+            throw new EzeeplusPayException("Invalid JSON response.");
         }
 
         return $decoded;
