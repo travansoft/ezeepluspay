@@ -27,27 +27,47 @@ class Client
         if (!isset($config['api_key']) || !isset($config['secret']) || !isset($config['base_url'])) {
             throw new \InvalidArgumentException("api_key and secret are required.");
         }
-
         $this->apiKey  = $config['api_key'];
         $this->secret  = $config['secret'];
-        $this->baseUrl = $config['base_url'];
+        $this->baseUrl = rtrim($config['base_url'], '/');
     }
-
-
+ 
 
     /**
      * Create a payment order
      */
-    public function createPayment(string $merchantTid, float $amount, string $callbackUrl, array $metadata = []): array
+    public function createPayment(array $params): array
     {
+        // merchant_tid required + non-empty string
+        if (empty($params['merchant_tid']) || !is_string($params['merchant_tid'])) {
+            throw new EzeePlusPayException("merchant_tid is required and must be a valid string.");
+        }
+
+        // amount required + numeric + greater than 0
+        if (!isset($params['amount']) || !is_numeric($params['amount']) || $params['amount'] <= 0) {
+            throw new EzeePlusPayException("amount is required and must be a number greater than 0.");
+        }
+
+        // callback_url required + valid URL
+        if (empty($params['callback_url']) || !filter_var($params['callback_url'], FILTER_VALIDATE_URL)) {
+            throw new EzeePlusPayException("callback_url is required and must be a valid URL.");
+        }
+
+        // metadata optional → must be array
+        if (isset($params['metadata']) && !is_array($params['metadata'])) {
+            throw new EzeePlusPayException("metadata must be an array.");
+        }
+
+        // --- BUILD PAYLOAD ---
         $payload = [
-            'merchant_tid' => $merchantTid,
-            'amount'       => $amount,
-            'callback_url' => $callbackUrl,
-            'metadata'     => $metadata,
+            'merchant_tid' => $params['merchant_tid'],
+            'amount'       => (float)$params['amount'],
+            'callback_url' => $params['callback_url'],
+            'metadata'     => $params['metadata'] ?? [],
         ];
 
         return $this->post('/api/transaction/create', $payload);
+  
     }
 
     /**
