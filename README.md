@@ -39,9 +39,9 @@ require 'vendor/autoload.php';
 use Travansoft\EzeePlusPay\Client;
 
 $client = new Client([
-    'api_key' => 'YOUR_MERCHANT_ID',
+    'api_key' => 'YOUR_API_KEY',
     'secret'     => 'YOUR_SECRET_KEY',
-    'base_url'    => 'https://secure.ezeepluspay.in/'
+    'base_url'    => 'https://secure.example.in/'
 ]);
 ```
 
@@ -109,78 +109,21 @@ if ($result->isValid()) {
 
 ``` php
 <?php
-require 'vendor/autoload.php';
 
-use EzeePlusPay\Client;
+$result = $client->processWebhook();
 
-$client = new Client([
-    'merchant_id' => 'YOUR_MERCHANT_ID',
-    'api_key'     => 'YOUR_SECRET_KEY'
-]);
-
-$payload = json_decode(file_get_contents("php://input"), true);
-
-if (!$client->verifySignature($payload)) {
+if (!$result->isValid()) {
     http_response_code(400);
-    echo "Invalid Signature";
-    exit;
+    exit("Callback Error: " . $result->getError());
 }
 
-$orderId = $payload['order_id'];
-$status  = $payload['status'];
-
-http_response_code(200);
-echo "OK";
+$data = $result->getData();
+$merchantTransactionID = $data['merchant_tid'];
+$status  = $data['status'];
 ```
 
 ------------------------------------------------------------------------
-
-# 🔐 Signature Logic
-
-``` php
-public function generateSignature(array $data)
-{
-    ksort($data);
-    $query = urldecode(http_build_query($data));
-    return base64_encode(hash_hmac('sha256', $query, $this->api_key, true));
-}
-```
-
-------------------------------------------------------------------------
-
-# ✔ Signature Verification
-
-``` php
-if ($client->verifySignature($_GET)) {
-    echo "Signature Verified";
-} else {
-    echo "Signature Invalid";
-}
-```
-
-------------------------------------------------------------------------
-
-# 🧪 Demo Project
-
-A complete demo is included in:
-
-    /demo
-
-------------------------------------------------------------------------
-
-# 📁 Example Folder Structure
-
-    project/
-    │── vendor/
-    │── demo/
-    │   ├── index.php
-    │   ├── redirect.php
-    │   ├── callback.php
-    │── composer.json
-    │── README.md
-
-------------------------------------------------------------------------
-
+   
 # 📞 Support
 
 For API credentials or support, contact EzeePlusPay.

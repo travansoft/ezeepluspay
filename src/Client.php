@@ -91,20 +91,31 @@ class Client
      */
     public function processWebhook(): CallbackResponse
     {
-        $raw = file_get_contents('php://input');
+        $rawBody = file_get_contents('php://input');
 
-        if (!$raw) {
+        if (!$rawBody) {
             return new CallbackResponse(false, null, 'Webhook payload is empty');
         }
 
-        $json = json_decode($raw, true);
+        $json = json_decode($rawBody, true);
 
         if (!is_array($json)) {
             return new CallbackResponse(false, null, 'Invalid webhook JSON');
         }
 
-        if (!isset($json['signed_payload']) || !isset($json['signature'])) {
-            return new CallbackResponse(false, null, 'Webhook missing signed_payload or signature');
+        // Get signature from headers
+        $receivedSignature = $_SERVER['HTTP_X_SIGNATURE'] ?? null;
+
+        if (!$receivedSignature) {
+            return new CallbackResponse(false, null, 'Missing signature');
+        }
+
+        // Compute expected HMAC signature
+        $expectedSignature = hash_hmac('sha256', $rawBody, $this->secret);
+
+        // Compare signatures
+        if (!hash_equals($expectedSignature, $receivedSignature)) {
+            return new CallbackResponse(false, null, 'Invalid signature');
         }
 
         return $this->handleCallback(
