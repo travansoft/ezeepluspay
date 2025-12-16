@@ -144,6 +144,58 @@ class Client
         return new CallbackResponse(true, $decoded, null);
     }
 
+    /**
+     * Fetch transaction status (Offline / Forced PSP reconciliation)
+     *
+     * @param string $aggregatorTid
+     * @param bool   $force  If true, forces PSP API call
+     *
+     * @return array
+     */
+    public function fetchTransactionStatus(string $aggregatorTid, bool $force = false): array
+    {
+        if (empty($aggregatorTid)) {
+            throw new EzeeplusPayException("aggregator_tid is required.");
+        }
+
+        $query = $force ? '?force=true' : '';
+        $url   = $this->baseUrl . '/api/transaction/status/' . urlencode($aggregatorTid) . $query;
+
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPGET        => true,
+            CURLOPT_HTTPHEADER     => [
+                'Accept: application/json',
+                'X-API-KEY: ' . $this->apiKey
+            ]
+        ]);
+
+        $response = curl_exec($ch);
+
+        if ($response === false) {
+            $error = curl_error($ch);
+            curl_close($ch);
+            throw new EzeeplusPayException("cURL error: {$error}");
+        }
+
+        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($status >= 500) {
+            throw new EzeeplusPayException("EzeePlusPay server error: HTTP {$status}");
+        }
+
+        $decoded = json_decode($response, true);
+
+        if (!is_array($decoded)) {
+            throw new EzeeplusPayException("Invalid JSON response from status API.");
+        }
+
+        return $decoded;
+    }
+
+
     private function decodeSignedPayloadInternal(string $signedPayload): array
     {
         $json = base64_decode($signedPayload, true);

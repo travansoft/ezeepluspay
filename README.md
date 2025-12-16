@@ -123,6 +123,70 @@ $status  = $data['status'];
 ```
 
 ------------------------------------------------------------------------
+
+# 🔎 Offline Transaction Status API (Reconciliation)
+
+Use this API to:
+
+Check payment status manually
+
+Handle missed callbacks
+
+Reconcile pending transactions
+
+Run cron-based verification
+
+This API works even if the user never returned from the payment page.
+
+``` php
+<?php
+$response = $client->fetchTransactionStatus($aggregatorTid);
+
+if ($response['status'] === 'success') {
+    $event = $response['event'];
+    echo "Payment Status: " . $event['status'];
+} else {
+    echo "Transaction is still pending";
+}
+
+```
+
+------------------------------------------------------------------------
+
+# 🔥 Forced PSP Reconciliation (Admin / Cron)
+
+This always calls the underlying PSP, even if the transaction was already
+resolved earlier.
+``` php
+<?php
+
+$response = $client->fetchTransactionStatus($aggregatorTid, true);
+
+if ($response['status'] === 'success') {
+    $event = $response['event'];
+
+    /*
+     * Event payload structure:
+     * [
+     *   'aggregator_tid',
+     *   'merchant_tid',
+     *   'psp_tid',
+     *   'amount',
+     *   'status',        // SUCCESS | FAILED | REFUNDED
+     *   'message',
+     *   'psp',
+     *   'raw_response',
+     *   'timestamp'
+     * ]
+     */
+} else {
+    echo "Transaction still pending at payment gateway";
+}
+
+
+```
+
+------------------------------------------------------------------------
    
 # 📞 Support
 
