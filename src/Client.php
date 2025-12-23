@@ -76,12 +76,25 @@ class Client
      */
     public function processPaymentCallback(): CallbackResponse
     {
-        if (empty($_POST['signed_payload']) || empty($_POST['signature'])) {
-            return new CallbackResponse(false, null, 'Missing callback parameters');
+        // Prefer POST (server callback)
+        if (!empty($_POST['signed_payload']) && !empty($_POST['signature'])) {
+            return $this->handleCallback(
+                $_POST['signed_payload'],
+                $_POST['signature']
+            );
         }
 
-        return $this->handleCallback($_POST['signed_payload'], $_POST['signature']);
+        // Fallback to GET (browser redirect)
+        if (!empty($_GET['signed_payload']) && !empty($_GET['signature'])) {
+            return $this->handleCallback(
+                $_GET['signed_payload'],
+                $_GET['signature']
+            );
+        }
+
+        return new CallbackResponse(false, null, 'Missing callback parameters');
     }
+
 
     /**
      * -------------------------------------------------------------
