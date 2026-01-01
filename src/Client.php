@@ -115,16 +115,18 @@ class Client
         if (!is_array($json)) {
             return new CallbackResponse(false, null, 'Invalid webhook JSON');
         }
-
-        // Get signature from headers
-        $receivedSignature = $_SERVER['HTTP_X_SIGNATURE'] ?? null;
-
+        if (empty($json['signed_payload']) || empty($json['signature'])) {
+            return new CallbackResponse(false, null, 'Missing webhook parameters');
+        }
+        $receivedSignature = $json['signature'];
         if (!$receivedSignature) {
             return new CallbackResponse(false, null, 'Missing signature');
         }
 
+        $signedPayload = $json['signed_payload'];
+
         // Compute expected HMAC signature
-        $expectedSignature = hash_hmac('sha256', $rawBody, $this->secret);
+        $expectedSignature = hash_hmac('sha256', $signedPayload, $this->secret);
 
         // Compare signatures
         if (!hash_equals($expectedSignature, $receivedSignature)) {
@@ -136,6 +138,7 @@ class Client
             $json['signature']
         );
     }
+
 
     /**
      * Manual handling of callback
